@@ -1,1 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ImageForge AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080c14;--card:#111827;--border:rgba(255,255,255,0.07);--accent:#3b82f6;--a2:#60a5fa;--gold:#f59e0b;--red:#ef4444;--green:#22c55e;--text:#e2e8f0;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5;}
+nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(10,15,26,0.93);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:100px;padding:8px 18px;display:flex;align-items:center;gap:14px;z-index:1000;width:min(960px,96vw);}
+.logo{display:flex;align-items:center;gap:7px;font-weight:700;font-size:14px;color:white;white-space:nowrap;flex-shrink:0;}
+.logo svg{color:var(--accent);}
+.nlinks{display:flex;gap:16px;}
+.nlinks a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;cursor:pointer;white-space:nowrap;}
+.nlinks a:hover,.nlinks a.act{color:var(--a2);}
+.nright{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.mchip{display:none;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(245,158,11,.07));border:1px solid rgba(245,158,11,.5);border-radius:100px;padding:5px 13px 5px 9px;font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap;cursor:default;animation:mpop .4s ease;}
+.mchip.show{display:flex;}
+@keyframes mpop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.bg{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.bg:hover{border-color:var(--accent);color:var(--a2);}
+.bp{background:var(--accent);border:none;color:white;padding:7px 16px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:600;transition:all .2s;}
+.bp:hover{background:var(--a2);transform:translateY(-1px);}
+.ubadge{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:100px;padding:4px 12px 4px 6px;font-size:13px;cursor:pointer;transition:all .2s;position:relative;}
+.ubadge:hover{border-color:rgba(255,255,255,.15);}
+.uav{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;}
+.uav.adm{background:linear-gradient(135deg,#dc2626,#ef4444);}
+.udrop{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:160px;z-index:300;box-shadow:0 8px 40px rgba(0,0,0,.55);}
+.ubadge:hover .udrop{display:block;}
+.udrop a{display:block;padding:8px 12px;font-size:13px;color:var(--muted);cursor:pointer;border-radius:8px;transition:all .2s;}
+.udrop a:hover{background:rgba(255,255,255,.04);color:var(--text);}
+.udrop a.danger:hover{color:var(--red);}
+.udrop hr{border:none;border-top:1px solid var(--border);margin:4px 0;}
+.pp{font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:.06em;}
+.pp.free{background:rgba(255,255,255,.08);color:var(--muted);}
+.pp.vip{background:rgba(59,130,246,.2);color:var(--a2);}
+.pp.premium{background:rgba(245,158,11,.2);color:var(--gold);}
+.pp.admin{background:rgba(239,68,68,.2);color:#f87171;}
+.page{display:none;position:relative;z-index:1;}
+.page.active{display:block;}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;}
+.hglow{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.1) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.pill{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:var(--a2);padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px;}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1{font-family:'Playfair Display',serif;font-size:clamp(40px,7vw,82px);line-height:1.05;margin-bottom:24px;max-width:720px;}
+h1 em{font-style:italic;color:var(--a2);}
+.hsub{color:var(--muted);font-size:17px;max-width:440px;line-height:1.7;margin-bottom:40px;}
+.hcta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.blg{padding:14px 32px;border-radius:100px;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .25s;}
+.blg.s{background:var(--accent);border:none;color:white;box-shadow:0 0 40px rgba(59,130,246,.3);}
+.blg.s:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(59,130,246,.5);}
+.blg.o{background:transparent;border:1px solid var(--border);color:var(--text);}
+.blg.o:hover{border-color:var(--accent);}
+.gwrap{padding:100px 24px 60px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;}
+@media(max-width:760px){.gwrap{grid-template-columns:1fr;}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;}
+.panel h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:18px;color:white;}
+.sl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.crow{display:flex;align-items:center;justify-content:space-between;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:11px 15px;margin-bottom:18px;font-size:14px;}
+.cval{font-weight:700;color:var(--a2);font-size:20px;}
+textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:none;height:110px;transition:border-color .2s;outline:none;}
+textarea:focus{border-color:var(--accent);}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0 16px;}
+.sb{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:8px 4px;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-align:center;}
+.sb:hover,.sb.sel{background:rgba(59,130,246,.1);border-color:var(--accent);color:var(--a2);}
+select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer;margin-bottom:12px;appearance:none;}
+.genbtn{width:100%;background:var(--accent);border:none;color:white;padding:13px;border-radius:12px;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .25s;margin-top:14px;position:relative;overflow:hidden;}
+.genbtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 30px rgba(59,130,246,.4);}
+.genbtn:disabled{opacity:.55;cursor:not-allowed;}
+.shim{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:sh 1.5s infinite;}
+@keyframes sh{to{left:200%;}}
+.rbox{min-height:380px;border-radius:16px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.02);border:1px dashed var(--border);}
+.rph{text-align:center;color:var(--muted);}
+.rph svg{margin-bottom:12px;opacity:.35;display:block;margin:0 auto 12px;}
+.rimg{width:100%;height:auto;border-radius:16px;display:none;}
+.lov{position:absolute;inset:0;background:rgba(6,10,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;border-radius:16px;}
+.spn{width:44px;height:44px;border:3px solid rgba(59,130,246,.2);border-top-color:var(--accent);border-radius:50%;animation:rot .8s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg);}}
+.ltxt{color:var(--muted);font-size:13px;}
+.hisgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:16px;}
+.hi{border-radius:10px;overflow:hidden;border:1px solid var(--border);background:rgba(255,255,255,.03);aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;}
+.hi img{width:100%;height:100%;object-fit:cover;}
+.lw{position:relative;}
+.ll{position:absolute;inset:0;background:rgba(6,10,20,.87);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:13px;color:var(--muted);backdrop-filter:blur(2px);cursor:pointer;z-index:10;}
+.ll:hover{background:rgba(6,10,20,.75);}
+.ul{color:var(--a2);font-weight:600;text-decoration:underline;cursor:pointer;}
+.pwrap{padding:100px 24px 80px;max-width:1100px;margin:0 auto;text-align:center;}
+.pwrap h2{font-family:'Playfair Display',serif;font-size:clamp(30px,5vw,56px);margin-bottom:14px;}
+.pwrap h2 em{color:var(--a2);font-style:italic;}
+.btog{display:inline-flex;background:rgba(255,255,255,.05);border-radius:100px;padding:4px;margin:28px 0 44px;gap:4px;}
+.tbtn{padding:8px 20px;border-radius:100px;border:none;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
+.tbtn.on{background:white;color:#111;font-weight:700;}
+.sbadge{background:rgba(34,197,94,.15);color:#22c55e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:5px;}
+.plns{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
+@media(max-width:880px){.plns{grid-template-columns:1fr;max-width:380px;margin:0 auto;}}
+.pc{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;text-align:left;position:relative;transition:transform .25s;}
+.pc:hover{transform:translateY(-4px);}
+.pc.feat{background:linear-gradient(140deg,#0c1828,#111827);border-color:rgba(59,130,246,.4);box-shadow:0 0 60px rgba(59,130,246,.1);}
+.pc.prem{border-color:rgba(245,158,11,.3);}
+.tbadge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 14px;border-radius:100px;white-space:nowrap;text-transform:uppercase;}
+.tier{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.tier.vip{color:var(--a2);}
+.tier.prem{color:var(--gold);}
+.pr{font-family:'Playfair Display',serif;font-size:50px;font-style:italic;color:white;line-height:1;margin-bottom:4px;}
+.pr sup{font-size:22px;vertical-align:super;}
+.pr sub{font-size:15px;color:var(--muted);font-family:'DM Sans',sans-serif;font-style:normal;}
+.pdesc{color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.fts{list-style:none;display:flex;flex-direction:column;gap:9px;margin:14px 0 22px;}
+.fts li{display:flex;align-items:center;gap:9px;font-size:13px;}
+.ck{width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;}
+.ck.y{background:rgba(34,197,94,.15);color:#22c55e;}
+.ck.n{background:rgba(255,255,255,.05);color:var(--muted);}
+.pcta{width:100%;padding:11px;border-radius:11px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .2s;}
+.pcta.cf{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);}
+.pcta.cf:hover{background:rgba(255,255,255,.1);}
+.pcta.cv{background:var(--accent);border:none;color:white;}
+.pcta.cv:hover{background:var(--a2);transform:translateY(-1px);}
+.pcta.cp{background:linear-gradient(135deg,#d97706,#f59e0b);border:none;color:#000;}
+.pcta.cp:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(245,158,11,.3);}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:2000;display:none;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.mod{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:38px;width:min(450px,92vw);position:relative;animation:mIn .22s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mc{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:none;color:var(--muted);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.mc:hover{background:rgba(255,255,255,.12);color:white;}
+.mod h3{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:6px;color:white;}
+.msub{color:var(--muted);font-size:14px;margin-bottom:22px;}
+.tabs{display:flex;background:rgba(255,255,255,.04);border-radius:9px;padding:3px;margin-bottom:20px;gap:3px;}
+.tab{flex:1;padding:8px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
+.tab.on{background:var(--accent);color:white;font-weight:700;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:.03em;}
+.fg input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.fg input:focus{border-color:var(--accent);}
+.fsub{width:100%;background:var(--accent);border:none;color:white;padding:12px;border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;margin-top:6px;transition:all .2s;}
+.fsub:hover{background:var(--a2);transform:translateY(-1px);}
+.divv{text-align:center;color:var(--muted);font-size:12px;margin:13px 0;position:relative;}
+.divv::before,.divv::after{content:'';position:absolute;top:50%;width:36%;height:1px;background:var(--border);}
+.divv::before{left:0;}.divv::after{right:0;}
+.merr{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:11px;display:none;}
+.mok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80;padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:11px;display:none;}
+.admbtn{width:100%;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px;border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;margin-top:8px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.admbtn:hover{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.4);}
+.admbox{text-align:center;margin-bottom:16px;}
+.admicon{width:52px;height:52px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.admlbl{font-size:13px;color:var(--muted);}
+.bi{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;text-align:center;}
+.bname{font-family:'Playfair Display',serif;font-size:26px;font-style:italic;color:white;margin-bottom:3px;}
+.bprice{font-size:30px;font-weight:700;color:var(--gold);}
+.bbal{font-size:13px;color:var(--muted);margin-top:10px;}
+.bbal span{color:var(--gold);font-weight:700;}
+.fsub.gold{background:linear-gradient(135deg,#d97706,#f59e0b);color:#000;}
+.fsub.gold:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(245,158,11,.35);}
+#page-admin{padding:90px 24px 60px;max-width:1100px;margin:0 auto;}
+.ahdr{display:flex;align-items:center;gap:12px;margin-bottom:30px;flex-wrap:wrap;}
+.abadge{background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;}
+.ahdr h2{font-family:'Playfair Display',serif;font-size:30px;color:white;}
+.astat{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+@media(max-width:700px){.astat{grid-template-columns:repeat(2,1fr);}}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 22px;}
+.slbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;}
+.sval{font-family:'Playfair Display',serif;font-size:32px;color:white;font-style:italic;}
+.asec{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:20px;}
+.asec h3{font-family:'Playfair Display',serif;font-size:19px;color:white;margin-bottom:18px;display:flex;align-items:center;gap:9px;}
+.mbar{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.mbarlbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;}
+.mbarval{font-family:'Playfair Display',serif;font-size:30px;color:var(--gold);font-style:italic;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;padding:9px 11px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.tbl td{padding:11px;border-bottom:1px solid rgba(255,255,255,.035);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.015);}
+.ar{display:flex;gap:7px;align-items:center;}
+.ain{width:75px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:7px;padding:6px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;text-align:center;}
+.ain:focus{border-color:var(--gold);}
+.gbtn{background:linear-gradient(135deg,#b45309,#f59e0b);border:none;color:#000;padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.gbtn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,.3);}
+.pbs{display:flex;gap:4px;flex-wrap:wrap;}
+.pb{padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all .2s;}
+.pb.pf{background:rgba(255,255,255,.08);color:var(--text);}
+.pb.pv{background:rgba(59,130,246,.2);color:var(--a2);}
+.pb.pp{background:rgba(245,158,11,.2);color:var(--gold);}
+.pb:hover{opacity:.75;transform:scale(1.05);}
+.db{background:rgba(239,68,68,.12);border:none;color:#f87171;padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;}
+.db:hover{background:rgba(239,68,68,.25);}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 18px;font-size:14px;z-index:9999;animation:tIn .3s ease;display:flex;align-items:center;gap:9px;box-shadow:0 8px 40px rgba(0,0,0,.5);max-width:300px;}
+@keyframes tIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
 
+<nav>
+  <div class="logo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    ImageForge
+  </div>
+  <div class="nlinks">
+    <a onclick="goP('home')" id="nl-home" class="act">Accueil</a>
+    <a onclick="goP('generate')" id="nl-generate">Générer</a>
+    <a onclick="goP('pricing')" id="nl-pricing">Tarifs</a>
+    <a onclick="goP('admin')" id="nl-admin" style="display:none;color:#f87171;">⚙ Admin</a>
+  </div>
+  <div class="nright">
+    <div class="mchip" id="mchip">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span id="mval">0.00</span>&nbsp;€
+    </div>
+    <div id="aarea">
+      <button class="bg" onclick="openA('login')" style="margin-right:6px;">Connexion</button>
+      <button class="bp" onclick="openA('register')">S'inscrire</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hglow"></div>
+    <div class="pill">✦ Génération IA</div>
+    <h1>Créez <em>n'importe quelle</em><br>image sans limites.</h1>
+    <p class="hsub">Du plan gratuit pour commencer jusqu'au Premium pour les créateurs les plus ambitieux.</p>
+    <div class="hcta">
+      <button class="blg s" onclick="goP('generate')">Commencer gratuitement</button>
+      <button class="blg o" onclick="goP('pricing')">Voir les offres</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE -->
+<div class="page" id="page-generate">
+  <div class="gwrap">
+    <div>
+      <div class="panel">
+        <h2>Créer une image</h2>
+        <div class="crow"><span>Crédits disponibles</span><span class="cval" id="crdisp">10</span></div>
+        <div class="sl">Description</div>
+        <textarea id="prompt" placeholder="Décrivez votre image… ex : un château médiéval au coucher du soleil"></textarea>
+        <div class="sl" style="margin-top:14px;">Style artistique</div>
+        <div class="sgrid">
+          <button class="sb sel" onclick="pickS(this)">🎨 Réaliste</button>
+          <button class="sb" onclick="pickS(this)">🖌️ Peinture</button>
+          <button class="sb" onclick="pickS(this)">✏️ Esquisse</button>
+          <button class="sb" onclick="pickS(this)">🌌 Fantasy</button>
+          <button class="sb" onclick="pickS(this)">🤖 Cyberpunk</button>
+          <button class="sb" onclick="needV(this)">⚡ Anime <span style="font-size:9px;color:var(--gold)">VIP</span></button>
+        </div>
+        <div class="sl">Format</div>
+        <select id="format-select"><option>Carré (1:1)</option><option>Portrait (3:4)</option><option>Paysage (16:9)</option></select>
+        <div class="lw">
+          <div class="sl">Qualité</div>
+          <select id="quality-select" disabled style="opacity:.45;cursor:not-allowed"><option>Standard</option><option>Haute résolution (2K)</option><option>Ultra HD (4K)</option></select>
+          <div class="ll" id="quality-lock" onclick="goP('pricing')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Plan <span class="ul">VIP</span> requis
+          </div>
+        </div>
+        <button class="genbtn" id="genbtn" onclick="doGen()">
+          <div class="shim"></div>✦ Générer l'image (1 crédit)
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <div class="rbox" id="rbox">
+          <div class="rph" id="rph">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+            <p>Votre image apparaîtra ici</p>
+          </div>
+          <div class="lov" id="lov"><div class="spn"></div><div class="ltxt" id="ltxt">Génération en cours…</div></div>
+          <img class="rimg" id="rimg" alt="">
+        </div>
+      </div>
+      <div style="margin-top:18px;">
+        <div class="sl">Générations récentes</div>
+        <div class="hisgrid" id="hisgrid"><div class="hi">Aucune image</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="page" id="page-pricing">
+  <div class="pwrap">
+    <div class="pill">✦ Nos offres</div>
+    <h2>Construisez votre vision<br><em>sans compromis.</em></h2>
+    <p style="color:var(--muted);font-size:16px;margin-top:14px;">Du plan gratuit jusqu'au Premium pour les créateurs les plus actifs.</p>
+    <div class="btog">
+      <button class="tbtn" onclick="setBill('monthly',this)">Mensuel</button>
+      <button class="tbtn on" onclick="setBill('annual',this)">Annuel <span class="sbadge">-55%</span></button>
+    </div>
+    <div class="plns">
+      <div class="pc">
+        <div class="tier">Gratuit</div>
+        <div class="pr">0<sup>€</sup><sub>/an</sub></div>
+        <div class="pdesc">Idéal pour découvrir ImageForge et créer vos premières images IA.</div>
+        <ul class="fts">
+          <li><span class="ck y">✓</span>10 crédits / 2 semaines</li>
+          <li><span class="ck y">✓</span>Génération IA complète</li>
+          <li><span class="ck y">✓</span>5 styles artistiques</li>
+          <li><span class="ck n">✗</span><span style="opacity:.4">Haute résolution</span></li>
+          <li><span class="ck n">✗</span><span style="opacity:.4">Priorité de génération</span></li>
+        </ul>
+        <button class="pcta cf" onclick="openA('register')">Commencer gratuitement</button>
+      </div>
+      <div class="pc feat">
+        <div class="tbadge">PLUS POPULAIRE</div>
+        <div class="tier vip">✦ VIP</div>
+        <div class="pr" id="vipp">11,99<sup>€</sup><sub>/an</sub></div>
+        <div class="pdesc">Pour les créateurs actifs avec renouvellement hebdomadaire de crédits.</div>
+        <ul class="fts">
+          <li><span class="ck y">✓</span>Tout le plan Gratuit, plus :</li>
+          <li><span class="ck y">✓</span>50 crédits / semaine</li>
+          <li><span class="ck y">✓</span>Priorité de génération</li>
+          <li><span class="ck y">✓</span>Haute résolution (2K)</li>
+          <li><span class="ck y">✓</span>Tous les styles artistiques</li>
+        </ul>
+        <button class="pcta cv" onclick="buyP('vip')">Choisir VIP</button>
+      </div>
+      <div class="pc prem">
+        <div class="tier prem">★ Premium</div>
+        <div class="pr" id="premp">42,99<sup>€</sup><sub>/an</sub></div>
+        <div class="pdesc">300 crédits hebdomadaires et support dédié pour les créateurs les plus ambitieux.</div>
+        <ul class="fts">
+          <li><span class="ck y">✓</span>Tout le plan VIP, plus :</li>
+          <li><span class="ck y">✓</span>300 crédits / semaine</li>
+          <li><span class="ck y">✓</span>Résolution 4K Ultra HD</li>
+          <li><span class="ck y">✓</span>Génération par lot (x5)</li>
+          <li><span class="ck y">✓</span>Support dédié 24/7</li>
+        </ul>
+        <button class="pcta cp" onclick="buyP('premium')">Choisir Premium</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="page" id="page-admin">
+  <div class="ahdr"><span class="abadge">⚙ ADMIN</span><h2>Panneau d'administration</h2></div>
+  <div class="astat" id="astat"></div>
+  <div class="asec">
+    <div class="mbar">
+      <div>
+        <div class="mbarlbl">💰 Argent total distribué</div>
+        <div class="mbarval" id="totmoney">0.00 €</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="mbarlbl">Revenus (plans achetés)</div>
+        <div id="revval" style="font-size:22px;font-weight:700;color:var(--green);">0.00 €</div>
+      </div>
+    </div>
+    <h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Gestion des utilisateurs
+    </h3>
+    <div style="overflow-x:auto;">
+      <table class="tbl">
+        <thead><tr>
+          <th>Utilisateur</th><th>Email</th><th>Plan</th><th>Crédits</th>
+          <th>💰 Solde</th><th>Donner argent</th><th>Changer plan</th><th>Action</th>
+        </tr></thead>
+        <tbody id="atbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="ov" id="auth-ov" onclick="closeOvOut(event,'auth-ov')">
+  <div class="mod">
+    <button class="mc" onclick="closeOv('auth-ov')">×</button>
+    <h3 id="atitle">Bienvenue</h3>
+    <p class="msub" id="asub">Créez votre compte pour commencer.</p>
+    <div class="tabs" id="atabs">
+      <button class="tab on" id="tab-reg" onclick="swF('reg')">S'inscrire</button>
+      <button class="tab" id="tab-log" onclick="swF('log')">Se connecter</button>
+    </div>
+    <div id="aerr" class="merr"></div>
+    <div id="aok" class="mok"></div>
+    <div id="form-reg">
+      <div class="fg"><label>Nom d'utilisateur</label><input id="ru" type="text" placeholder="votre_pseudo"></div>
+      <div class="fg"><label>Email</label><input id="re" type="email" placeholder="vous@exemple.com"></div>
+      <div class="fg"><label>Mot de passe</label><input id="rp" type="password" placeholder="••••••••"></div>
+      <button class="fsub" onclick="doReg()">Créer mon compte</button>
+      <div class="divv">ou</div>
+      <button class="admbtn" onclick="swF('adm')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Accès administrateur
+      </button>
+    </div>
+    <div id="form-log" style="display:none;">
+      <div class="fg"><label>Email</label><input id="le" type="email" placeholder="vous@exemple.com"></div>
+      <div class="fg"><label>Mot de passe</label><input id="lp" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLog()"></div>
+      <button class="fsub" onclick="doLog()">Se connecter</button>
+      <div class="divv">ou</div>
+      <button class="admbtn" onclick="swF('adm')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Accès administrateur
+      </button>
+    </div>
+    <div id="form-adm" style="display:none;">
+      <div class="admbox">
+        <div class="admicon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="admlbl">Zone sécurisée — accès restreint</div>
+      </div>
+      <div class="fg"><label>Identifiant</label><input id="au" type="text" placeholder="admin"></div>
+      <div class="fg"><label>Mot de passe admin</label><input id="ap" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdm()"></div>
+      <button class="fsub" style="background:linear-gradient(135deg,#b91c1c,#ef4444);" onclick="doAdm()">Accéder au panel admin</button>
+      <div class="divv">ou</div>
+      <p style="text-align:center;font-size:13px;color:var(--muted);">Compte normal ? <span class="ul" onclick="swF('log')">Se connecter</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- BUY MODAL -->
+<div class="ov" id="buy-ov" onclick="closeOvOut(event,'buy-ov')">
+  <div class="mod" style="max-width:360px;">
+    <button class="mc" onclick="closeOv('buy-ov')">×</button>
+    <h3>Confirmer l'achat</h3>
+    <p class="msub">Votre solde sera débité du montant.</p>
+    <div class="bi">
+      <div class="bname" id="bname">VIP</div>
+      <div class="bprice" id="bpricelbl">11,99 €</div>
+      <div class="bbal">Votre solde : <span id="bbalshow">0.00 €</span></div>
+    </div>
+    <div id="berr" class="merr"></div>
+    <div id="bok" class="mok"></div>
+    <button class="fsub gold" id="bconfirm" onclick="confirmBuy()">✦ Confirmer l'achat</button>
+  </div>
+</div>
+
+<script>
+const UK='imgf_u2',SK='imgf_s2',AMID='admin',AMPW='743474';
+const PRICES={vip_annual:11.99,vip_monthly:2.49,premium_annual:42.99,premium_monthly:8.99};
+let me=null,creds=10,myPlan='free',isAdm=false,curSty='Réaliste',bill='annual',hist=[];
+let pPlan=null,pPrice=0,pLabel='';
+const gU=()=>{try{return JSON.parse(localStorage.getItem(UK)||'{}')}catch{return{}}};
+const sU=u=>localStorage.setItem(UK,JSON.stringify(u));
+const sS=s=>localStorage.setItem(SK,JSON.stringify(s));
+const nS=()=>localStorage.removeItem(SK);
+(function(){try{const s=JSON.parse(localStorage.getItem(SK)||'null');if(!s)return;if(s.isAdm){isAdm=true;me=s;applyA();}else{me=s;creds=s.credits||10;myPlan=s.plan||'free';applyU();}}catch{}})();
+function goP(p){if(p==='admin'&&!isAdm)return;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nlinks a').forEach(x=>x.classList.remove('act'));document.getElementById('page-'+p).classList.add('active');const nl=document.getElementById('nl-'+p);if(nl)nl.classList.add('act');if(p==='admin')renderAdm();}
+function applyU(){document.getElementById('mchip').classList.add('show');updM();updC();const i=me.username[0].toUpperCase();document.getElementById('aarea').innerHTML=`<div class="ubadge"><div class="uav">${i}</div><span>${me.username}</span><span class="pp ${myPlan}">${myPlan}</span><div class="udrop"><a onclick="goP('generate')">✦ Générer</a><a onclick="goP('pricing')">💎 Tarifs</a><hr><a onclick="doOut()" class="danger">⎋ Déconnexion</a></div></div>`;refreshVipLocks();}
+function applyA(){document.getElementById('nl-admin').style.display='inline';document.getElementById('mchip').classList.remove('show');document.getElementById('aarea').innerHTML=`<div class="ubadge"><div class="uav adm">A</div><span>Admin</span><span class="pp admin">ADMIN</span><div class="udrop"><a onclick="goP('admin')">⚙ Panel admin</a><hr><a onclick="doOut()" class="danger">⎋ Déconnexion</a></div></div>`;}
+function updM(){if(!me||isAdm)return;document.getElementById('mval').textContent=(me.money||0).toFixed(2);}
+function updC(){document.getElementById('crdisp').textContent=creds;}
+function openA(t){document.getElementById('auth-ov').classList.add('open');swF(t==='login'?'log':'reg');clrM();}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+function closeOvOut(e,id){if(e.target===document.getElementById(id))closeOv(id);}
+function swF(f){['reg','log','adm'].forEach(x=>{document.getElementById('form-'+x).style.display='none';const t=document.getElementById('tab-'+x);if(t)t.classList.remove('on');});document.getElementById('form-'+f).style.display='block';const ta=document.getElementById('tab-'+f);if(ta)ta.classList.add('on');const T={reg:['Bienvenue','Créez votre compte pour commencer.'],log:['Bon retour !','Connectez-vous à votre compte.'],adm:['Accès Admin','Zone sécurisée — identifiants requis.']};document.getElementById('atitle').textContent=T[f][0];document.getElementById('asub').textContent=T[f][1];document.getElementById('atabs').style.display=f==='adm'?'none':'flex';clrM();}
+function clrM(){document.getElementById('aerr').style.display='none';document.getElementById('aok').style.display='none';}
+function aE(m){const e=document.getElementById('aerr');e.textContent=m;e.style.display='block';document.getElementById('aok').style.display='none';}
+function aO(m){const e=document.getElementById('aok');e.textContent=m;e.style.display='block';document.getElementById('aerr').style.display='none';}
+function doReg(){const u=document.getElementById('ru').value.trim(),em=document.getElementById('re').value.trim(),pw=document.getElementById('rp').value;if(!u||!em||!pw)return aE('Veuillez remplir tous les champs.');if(pw.length<6)return aE('Mot de passe trop court (6 car. min).');if(!em.includes('@'))return aE('Email invalide.');const users=gU();if(users[em])return aE('Un compte existe déjà avec cet email.');const user={username:u,email:em,password:pw,plan:'free',credits:10,money:0,spent:0};users[em]=user;sU(users);loginU(user);aO('Compte créé ! Bienvenue '+u+' 🎉');setTimeout(()=>{closeOv('auth-ov');goP('generate');},1200);}
+function doLog(){const em=document.getElementById('le').value.trim(),pw=document.getElementById('lp').value;if(!em||!pw)return aE('Veuillez remplir tous les champs.');const users=gU(),u=users[em];if(!u)return aE('Aucun compte trouvé pour cet email.');if(u.password!==pw)return aE('Mot de passe incorrect.');loginU(u);aO('Connecté ! Bon retour, '+u.username+' 👋');setTimeout(()=>{closeOv('auth-ov');goP('generate');},1000);}
+function loginU(u){me=u;creds=u.credits||10;myPlan=u.plan||'free';isAdm=false;sS(u);applyU();}
+function doAdm(){const u=document.getElementById('au').value.trim(),pw=document.getElementById('ap').value;if(u!==AMID||pw!==AMPW)return aE('Identifiants administrateur incorrects.');isAdm=true;me={isAdm:true};sS({isAdm:true});aO('Accès admin accordé ! Redirection…');setTimeout(()=>{closeOv('auth-ov');applyA();goP('admin');},900);}
+function doOut(){me=null;creds=10;myPlan='free';isAdm=false;nS();document.getElementById('mchip').classList.remove('show');document.getElementById('nl-admin').style.display='none';document.getElementById('aarea').innerHTML=`<button class="bg" onclick="openA('login')" style="margin-right:6px;">Connexion</button><button class="bp" onclick="openA('register')">S'inscrire</button>`;goP('home');toast('Déconnexion réussie.','var(--muted)');}
+function pickS(b){document.querySelectorAll('.sb').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');curSty=b.textContent.trim();}
+function needV(b){if(myPlan==='free'&&!isAdm){toast('⚡ Fonctionnalité VIP — passez au plan VIP !','var(--gold)');goP('pricing');}else{pickS(b);}}
+function refreshVipLocks(){const isVip=(myPlan==='vip'||myPlan==='premium');const qLock=document.getElementById('quality-lock');const qSel=document.getElementById('quality-select');if(qLock&&qSel){if(isVip){qLock.style.display='none';qSel.disabled=false;qSel.style.opacity='1';qSel.style.cursor='pointer';}else{qLock.style.display='flex';qSel.disabled=true;qSel.style.opacity='.45';qSel.style.cursor='not-allowed';}}}
+async function doGen(){
+  if(!me||isAdm){openA('register');return;}
+  const p=document.getElementById('prompt').value.trim();
+  if(!p){const ta=document.getElementById('prompt');ta.style.borderColor='var(--red)';setTimeout(()=>ta.style.borderColor='',1500);return;}
+  if(creds<=0){toast('❌ Plus de crédits ! Passez au plan VIP.','var(--red)');goP('pricing');return;}
+  const btn=document.getElementById('genbtn');
+  btn.disabled=true;btn.innerHTML='<div class="shim"></div>⏳ Génération en cours…';
+  document.getElementById('lov').style.display='flex';
+  document.getElementById('rimg').style.display='none';
+  document.getElementById('rph').style.display='none';
+  const msgs=['🧠 Analyse du prompt IA…','🎨 Génération en cours…','✨ Application du style…','🖼️ Finalisation de l\'image…','⏳ Presque prêt…'];
+  let mi=0;const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('ltxt').textContent=msgs[mi];},900);
+  try{
+    const fmt=document.getElementById('format-select').value;
+    let w=800,h=800;
+    if(fmt.includes('3:4')){w=600;h=800;}
+    else if(fmt.includes('16:9')){w=896;h=504;}
+    const styleMap={'Réaliste':'realistic photography, photorealistic, ultra detailed, 8k','Peinture':'oil painting, painterly brushstrokes, fine art, masterpiece','Esquisse':'pencil sketch, hand-drawn, detailed line art, graphite drawing','Fantasy':'fantasy art, magical, epic scene, dramatic lighting, highly detailed','Cyberpunk':'cyberpunk, neon lights, futuristic city, sci-fi, dark atmosphere','Anime':'anime style, manga art, vibrant colors, japanese animation, studio quality'};
+    const sKey=Object.keys(styleMap).find(k=>curSty.includes(k))||'Réaliste';
+    const stylePrompt=styleMap[sKey];
+    const fullPrompt=p+', '+stylePrompt;
+    const seed=Math.floor(Math.random()*99999999);
+    const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&seed='+seed+'&nologo=true&enhance=true&model=flux';
+    const img=document.getElementById('rimg');
+    img.crossOrigin='anonymous';
+    img.src=url;
+    img.onload=()=>{clearInterval(iv);document.getElementById('lov').style.display='none';img.style.display='block';toast('✦ Image générée ! ('+creds+' crédits restants)','var(--a2)');btn.disabled=false;btn.innerHTML='<div class="shim"></div>✦ Générer l\'image (1 crédit)';};
+    img.onerror=()=>{clearInterval(iv);document.getElementById('lov').style.display='none';document.getElementById('rph').style.display='block';document.querySelector('#rph p').textContent='⚠️ Échec — vérifiez votre connexion et réessayez.';toast('⚠️ Erreur de génération.','var(--red)');btn.disabled=false;btn.innerHTML='<div class="shim"></div>✦ Générer l\'image (1 crédit)';};
+    creds--;updC();sfld('credits',creds);
+    hist.unshift({prompt:p,url,seed});renderH();
+  }catch(err){clearInterval(iv);document.getElementById('lov').style.display='none';document.getElementById('rph').style.display='block';toast('⚠️ Erreur, réessayez.','var(--red)');btn.disabled=false;btn.innerHTML='<div class="shim"></div>✦ Générer l\'image (1 crédit)';}
+}
+function renderH(){const g=document.getElementById('hisgrid');if(!hist.length){g.innerHTML='<div class="hi">Aucune image</div>';return;}g.innerHTML=hist.slice(0,8).map(h=>`<div class="hi" title="${h.prompt}"><img src="${h.url}" onerror="this.parentElement.innerHTML='🖼️'"></div>`).join('');}
+function setBill(c,btn){bill=c;document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');if(c==='annual'){document.getElementById('vipp').innerHTML='11,99<sup>€</sup><sub>/an</sub>';document.getElementById('premp').innerHTML='42,99<sup>€</sup><sub>/an</sub>';}else{document.getElementById('vipp').innerHTML='2,49<sup>€</sup><sub>/mois</sub>';document.getElementById('premp').innerHTML='8,99<sup>€</sup><sub>/mois</sub>';}}
+function buyP(plan){if(!me||isAdm){openA('login');return;}pPlan=plan;pPrice=PRICES[plan+'_'+bill];pLabel=bill==='annual'?(plan==='vip'?'11,99 €/an':'42,99 €/an'):(plan==='vip'?'2,49 €/mois':'8,99 €/mois');document.getElementById('bname').textContent=plan.toUpperCase();document.getElementById('bpricelbl').textContent=pLabel;document.getElementById('bbalshow').textContent=(me.money||0).toFixed(2)+' €';document.getElementById('berr').style.display='none';document.getElementById('bok').style.display='none';document.getElementById('bconfirm').style.display='block';document.getElementById('buy-ov').classList.add('open');}
+function confirmBuy(){const bal=me.money||0;if(bal<pPrice){const el=document.getElementById('berr');el.textContent=`Solde insuffisant ! Vous avez ${bal.toFixed(2)} € mais le plan coûte ${pPrice.toFixed(2)} €. Demandez à l'admin de recharger votre compte.`;el.style.display='block';return;}me.money=parseFloat((bal-pPrice).toFixed(2));me.plan=pPlan;me.spent=parseFloat(((me.spent||0)+pPrice).toFixed(2));me.credits=pPlan==='vip'?50:300;myPlan=me.plan;creds=me.credits;syncU(me);sS(me);updM();updC();applyU();refreshVipLocks();document.getElementById('bok').textContent=`🎉 Plan ${pPlan.toUpperCase()} activé ! Solde restant : ${me.money.toFixed(2)} €`;document.getElementById('bok').style.display='block';document.getElementById('bconfirm').style.display='none';toast(`✦ Plan ${pPlan.toUpperCase()} activé !`,'var(--green)');setTimeout(()=>closeOv('buy-ov'),2200);}
+function syncU(u){const users=gU();if(users[u.email]){users[u.email]=u;sU(users);}}
+function sfld(field,val){if(!me||isAdm)return;me[field]=val;syncU(me);sS(me);}
+function renderAdm(){
+  const users=Object.values(gU());
+  const totM=users.reduce((s,u)=>s+(u.money||0),0);
+  const rev=users.reduce((s,u)=>s+(u.spent||0),0);
+  document.getElementById('astat').innerHTML=`
+    <div class="sc"><div class="slbl">Utilisateurs</div><div class="sval">${users.length}</div></div>
+    <div class="sc"><div class="slbl">Plans VIP</div><div class="sval" style="color:var(--a2)">${users.filter(u=>u.plan==='vip').length}</div></div>
+    <div class="sc"><div class="slbl">Plans Premium</div><div class="sval" style="color:var(--gold)">${users.filter(u=>u.plan==='premium').length}</div></div>
+    <div class="sc"><div class="slbl">Crédits distribués</div><div class="sval">${users.reduce((s,u)=>s+(u.credits||0),0)}</div></div>`;
+  document.getElementById('totmoney').textContent=totM.toFixed(2)+' €';
+  document.getElementById('revval').textContent=rev.toFixed(2)+' €';
+  if(!users.length){document.getElementById('atbody').innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Aucun utilisateur inscrit.</td></tr>`;return;}
+  document.getElementById('atbody').innerHTML=users.map(u=>{
+    const k=u.email.replace(/[@.]/g,'_');
+    return `<tr>
+      <td><strong>${u.username}</strong></td>
+      <td style="color:var(--muted);font-size:12px;">${u.email}</td>
+      <td><span class="pp ${u.plan}">${u.plan}</span></td>
+      <td>${u.credits}</td>
+      <td><strong style="color:var(--gold);">${(u.money||0).toFixed(2)} €</strong></td>
+      <td><div class="ar"><input class="ain" id="gi-${k}" type="number" min="0" step="1" placeholder="€"><button class="gbtn" onclick="giveMoney('${u.email}')">Donner</button></div></td>
+      <td><div class="pbs"><button class="pb pf" onclick="aP('${u.email}','free')">Free</button><button class="pb pv" onclick="aP('${u.email}','vip')">VIP</button><button class="pb pp" onclick="aP('${u.email}','premium')">Premium</button></div></td>
+      <td><button class="db" onclick="aD('${u.email}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+function giveMoney(email){const k='gi-'+email.replace(/[@.]/g,'_');const inp=document.getElementById(k);const amt=parseFloat(inp.value);if(isNaN(amt)||amt<=0){toast('❌ Montant invalide','var(--red)');return;}const users=gU();if(!users[email])return;users[email].money=parseFloat(((users[email].money||0)+amt).toFixed(2));sU(users);if(me&&!isAdm&&me.email===email){me.money=users[email].money;sS(me);updM();}inp.value='';toast(`💰 +${amt.toFixed(2)} € → ${users[email].username}`,'var(--gold)');renderAdm();}
+function aP(email,plan){const users=gU();if(!users[email])return;users[email].plan=plan;users[email].credits=plan==='free'?10:plan==='vip'?50:300;sU(users);if(me&&!isAdm&&me.email===email){me.plan=plan;me.credits=users[email].credits;myPlan=plan;creds=me.credits;sS(me);applyU();updC();refreshVipLocks();}toast(`✦ Plan ${plan.toUpperCase()} → ${users[email].username}`,'var(--a2)');renderAdm();}
+function aD(email){if(!confirm(`Supprimer le compte ${email} ?`))return;const users=gU();delete users[email];sU(users);toast('🗑 Compte supprimé.','var(--muted)');renderAdm();}
+function toast(msg,color='var(--text)'){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.style.borderColor=color+'55';t.innerHTML=`<span style="color:${color};font-weight:600;">${msg}</span>`;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3000);}
+</script>
+</body>
+</html>
